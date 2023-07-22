@@ -1,0 +1,80 @@
+.header-container {
+    background-color: #282828;
+    padding: 10px 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+    color: #fff;
+  }
+  
+  /* Header Content */
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* App Name */
+  .app-name {
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff;
+  }
+  
+  /* Favorites Button */
+  .favorites-button {
+    padding: 8px 12px;
+    background-color: #1db954;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff;
+    transition: background-color 0.2s ease;
+  }
+  
+  .favorites-button:hover {
+    background-color: #1ed760;
+  }
+
+  body {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .toolbar {
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  *, *::before, *::after {
+    border-radius: 0% !important;
+  }
+
+  .d-none {
+    display: block !important;
+  }
+
+  .transparent-blur {
+    width: fit-content;
+    height: fit-content;
+    background-color: rgba(255, 255, 255, 0.5); /* Set the background color with transparency */
+    backdrop-filter: blur(10px); /* Add the blur effect */
+    border: 1px solid #ccc;
+  }
+
+  .parent {
+    position: relative;
+    /* Add other styles for the parent element if needed */
+  }
+
+  .recommended {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Set the background color with transparency */
+    color: whitesmoke;
+    padding: 5px 10px;
+    /* Add other styles for the "Recommended" element */
+    z-index: 100;
+  }
+
+  
