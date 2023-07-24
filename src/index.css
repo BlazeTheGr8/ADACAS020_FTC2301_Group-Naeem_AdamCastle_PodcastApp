@@ -77,4 +77,76 @@
     z-index: 100;
   }
 
+  .show-details-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
   
+  .show-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .show-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .show-description {
+    margin-bottom: 10px;
+  }
+  
+  .show-genres {
+    margin-bottom: 10px;
+  }
+  
+  .show-seasons {
+    margin-bottom: 20px;
+  }
+  
+  .season-buttons {
+    overflow-x: auto;
+  }
+  
+  .season-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .selected-season-details {
+    margin-top: 30px;
+  }
+  
+  .selected-season {
+    font-weight: bold;
+  }
+  
+  .selected-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .selected-episodes {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .episode {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .episode-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .episode-description {
+    margin-bottom: 10px;
+  }

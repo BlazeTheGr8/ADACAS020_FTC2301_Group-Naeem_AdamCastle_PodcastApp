@@ -3,11 +3,12 @@ import {
     MDBCarousel,
     MDBCarouselItem,
 } from 'mdb-react-ui-kit';
+import { useNavigate } from 'react-router-dom';
 
 export default function Recommendations(props) {
-    const { showsData } = props
-    const {previewData, showData} = showsData
-    console.log(previewData)
+    const { showsData, onShowClick } = props
+    const { previewData, showData, apiComplete } = showsData
+    const navigate = useNavigate()
     const featured = []
     for (let item of showData) {
         if (item.genres) {
@@ -15,28 +16,40 @@ export default function Recommendations(props) {
                 featured.push(item)
         }
     }
+
+    const handleShowClick = (showId) => {
+        onShowClick(showId); // Update the currentShow in the App component's state
+        navigate(`/shows/${showId}`); // Programmatically navigate to the ShowDetails route using useNavigate
+      };
+
     const elements = featured.map(item => {
-        const { title, description, image, seasons } = item;
+        const { title, description, image, seasons, id } = item;
         return (
-            <MDBCarouselItem
+            <div key={id} onClick={() => handleShowClick(id)}>
+                <MDBCarouselItem
                 key={item.id}
                 className='w-100 d-block'
                 itemId={item.id}
                 src={image}
                 alt='...'
+                placeholder='Hello there'
             >
                 <h5 className='transparent-blur'>{title}</h5>
                 <p className='transparent-blur'>Seasons: {seasons.length}</p>
             </MDBCarouselItem>
+            </div>
         )
     })
 
-    console.log(elements)
+    
 
     return (
-        <MDBCarousel showControls showIndicators dark className='parent'>
-            <p className='recommended'>Recommended</p>
-            {elements}
-        </MDBCarousel>
+        <>
+            {!apiComplete ? <p>Fetching your recommendations</p> : <MDBCarousel showControls showIndicators fade dark className='parent'>
+                <p className='recommended'>Recommended</p>
+                {elements}
+            </MDBCarousel>}
+        </>
+
     );
 }

@@ -39,9 +39,9 @@ function Header(props) {
                 <MDBCollapse navbar show={showBasic}>
                     <MDBNavbarNav className='mr-auto mb-2 mb-lg-0'>
                         <MDBNavbarItem>
-                            <MDBNavbarLink active aria-current='page' href='#'>
+                            <Link to="/">
                                 Home
-                            </MDBNavbarLink>
+                           </Link>
                         </MDBNavbarItem>
 
                         

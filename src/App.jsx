@@ -1,13 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Header from '../components/Header';
-import { useState, useEffect } from 'react';
-import LandingPage from '../components/LandingPage'
+import LandingPage from '../components/LandingPage';
 import Recommendations from '../components/Recommendations';
-// import ShowList from './ShowList';
-// import ShowDetails from './ShowDetails';
-// import Favorites from './Favorites';
-// import Login from './Login';
+import ShowDetails from '../components/ShowDetails';
 
 const App = () => {
   const [state, setState] = useState({
@@ -15,6 +11,7 @@ const App = () => {
     previewData: [],
     showData: [],
     apiComplete: false,
+    currentShow: '',
   });
 
   useEffect(() => {
@@ -38,22 +35,30 @@ const App = () => {
     }
 
     fetchData();
-  }, [state.apiComplete]);
+  }, []);
 
-  console.log(state.showData);
+  const handleShowClick = (showId) => {
+    setState(prev => ({ ...prev, currentShow: showId }));
+  };
 
   return (
     <Router>
       <Header signedIn={state.signedIn} />
       <Routes>
         <Route exact path="/" element={state.showData && <>
-          {state.apiComplete && <Recommendations
-            showsData = {state}
-          />}
+          <Recommendations
+            showsData={state}
+            onShowClick={handleShowClick}
+          />
           <LandingPage
-          showsData={state}
-        />
+            showsData={state}
+            onShowClick={handleShowClick} // Pass the handleShowClick function to LandingPage
+          />
         </>} />
+        <Route exact path="/shows" element={<ShowDetails
+        showData={state.showData}  currentShow={state.currentShow} />} />
+        <Route exact path="/shows/:showId" element={<ShowDetails
+        showData={state.showData}  currentShow={state.previewData} />} />
         {/* <Route exact path="/login" component={Login} />
         <Route exact path="/shows" component={ShowList} />
         <Route exact path="/shows/:showId" component={ShowDetails} />
