@@ -68,7 +68,7 @@ function Header(props) {
 
                         </MDBNavbarItem>
                         <MDBNavbarItem>
-                            <MDBNavbarLink href='#'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
+                            <MDBNavbarLink href='/login'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
                         </MDBNavbarItem>
                     </MDBNavbarNav>
 
