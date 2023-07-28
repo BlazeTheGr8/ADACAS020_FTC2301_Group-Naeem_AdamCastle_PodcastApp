@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import LandingPage from '../components/LandingPage';
 import Recommendations from '../components/Recommendations';
 import ShowDetails from '../components/ShowDetails';
+import Login from '../components/Login';
 
 const App = () => {
   const [state, setState] = useState({
@@ -58,7 +59,8 @@ const App = () => {
         <Route exact path="/shows" element={<ShowDetails
         showData={state.showData}  currentShow={state.currentShow} />} />
         <Route exact path="/shows/:showId" element={<ShowDetails
-        showData={state.showData}  currentShow={state.previewData} />} />
+          showData={state.showData} currentShow={state.previewData} />} />
+        <Route exact path="/login" element={<Login />} />
         {/* <Route exact path="/login" component={Login} />
         <Route exact path="/shows" component={ShowList} />
         <Route exact path="/shows/:showId" component={ShowDetails} />

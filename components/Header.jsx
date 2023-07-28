@@ -1,6 +1,4 @@
-import React from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
     MDBContainer,
     MDBNavbar,
@@ -58,28 +56,18 @@ function Header(props) {
                 </MDBDropdown>
               </MDBNavbarItem>
 
-              <MDBNavbarItem>
-                {signedIn ? (
-                  <MDBNavbarItem>
-                    <MDBNavbarLink href="#">Favorites</MDBNavbarLink>
-                  </MDBNavbarItem>
-                ) : (
-                  <MDBNavbarLink
-                    disabled
-                    href="#"
-                    tabIndex={-1}
-                    aria-disabled="true"
-                  >
-                    Please sign in to view Favorites
-                  </MDBNavbarLink>
-                )}
-              </MDBNavbarItem>
-              <MDBNavbarItem>
-                <MDBNavbarLink href="#">
-                  {signedIn ? "Sign out" : "Sign in"}
-                </MDBNavbarLink>
-              </MDBNavbarItem>
-            </MDBNavbarNav>
+                        <MDBNavbarItem>
+                            {signedIn ? <MDBNavbarItem>
+                                <MDBNavbarLink href='#'>Favorites</MDBNavbarLink>
+                            </MDBNavbarItem> : <MDBNavbarLink disabled href='#' tabIndex={-1} aria-disabled='true'>
+                                Please sign in to view Favorites
+                            </MDBNavbarLink>}
+
+                        </MDBNavbarItem>
+                        <MDBNavbarItem>
+                            <MDBNavbarLink href='#'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
+                        </MDBNavbarItem>
+                    </MDBNavbarNav>
 
             <form className="d-flex input-group w-auto">
               <input
