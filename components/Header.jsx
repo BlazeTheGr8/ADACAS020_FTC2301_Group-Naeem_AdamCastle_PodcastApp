@@ -23,63 +23,76 @@ function Header(props) {
     const [showBasic, setShowBasic] = useState(false);
 
     return (
-        <MDBNavbar expand='lg' light bgColor='light'>
-            <MDBContainer fluid>
-                <MDBNavbarBrand href='#'>PodCast<i>le</i></MDBNavbarBrand>
+      <MDBNavbar expand="lg" light bgColor="light">
+        <MDBContainer fluid>
+          <MDBNavbarBrand href="#">
+            PodCast<i>le</i>
+          </MDBNavbarBrand>
 
-                <MDBNavbarToggler
-                    aria-controls='navbarSupportedContent'
-                    aria-expanded='false'
-                    aria-label='Toggle navigation'
-                    onClick={() => setShowBasic(!showBasic)}
-                >
-                    <MDBIcon icon='bars' fas />
-                </MDBNavbarToggler>
+          <MDBNavbarToggler
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+            onClick={() => setShowBasic(!showBasic)}
+          >
+            <MDBIcon icon="bars" fas />
+          </MDBNavbarToggler>
 
-                <MDBCollapse navbar show={showBasic}>
-                    <MDBNavbarNav className='mr-auto mb-2 mb-lg-0'>
-                        <MDBNavbarItem>
-                            <Link to="/">
-                                Home
-                           </Link>
-                        </MDBNavbarItem>
+          <MDBCollapse navbar show={showBasic}>
+            <MDBNavbarNav className="mr-auto mb-2 mb-lg-0">
 
-                        
+              <MDBNavbarItem>
+                <MDBNavbarLink href="/">Home</MDBNavbarLink>
+              </MDBNavbarItem>
 
-                        <MDBNavbarItem>
-                            <MDBDropdown>
-                                <MDBDropdownToggle tag='a' className='nav-link' role='button'>
-                                    Genres
-                                </MDBDropdownToggle>
-                                <MDBDropdownMenu>
-                                    <MDBDropdownItem link>Sign in</MDBDropdownItem>
-                                    <MDBDropdownItem link>Another action</MDBDropdownItem>
-                                    <MDBDropdownItem link>Something else here</MDBDropdownItem>
-                                </MDBDropdownMenu>
-                            </MDBDropdown>
-                        </MDBNavbarItem>
+              <MDBNavbarItem>
+                <MDBDropdown>
+                  <MDBDropdownToggle tag="a" className="nav-link" role="button">
+                    Genres
+                  </MDBDropdownToggle>
+                  <MDBDropdownMenu>
+                    <MDBDropdownItem link>Sign in</MDBDropdownItem>
+                    <MDBDropdownItem link>Another action</MDBDropdownItem>
+                    <MDBDropdownItem link>Something else here</MDBDropdownItem>
+                  </MDBDropdownMenu>
+                </MDBDropdown>
+              </MDBNavbarItem>
 
-                        <MDBNavbarItem>
-                            {signedIn ? <MDBNavbarItem>
-                                <MDBNavbarLink href='#'>Favorites</MDBNavbarLink>
-                            </MDBNavbarItem> : <MDBNavbarLink disabled href='#' tabIndex={-1} aria-disabled='true'>
-                                Please sign in to view Favorites
-                            </MDBNavbarLink>}
+              <MDBNavbarItem>
+                {signedIn ? (
+                  <MDBNavbarItem>
+                    <MDBNavbarLink href="#">Favorites</MDBNavbarLink>
+                  </MDBNavbarItem>
+                ) : (
+                  <MDBNavbarLink
+                    disabled
+                    href="#"
+                    tabIndex={-1}
+                    aria-disabled="true"
+                  >
+                    Please sign in to view Favorites
+                  </MDBNavbarLink>
+                )}
+              </MDBNavbarItem>
+              <MDBNavbarItem>
+                <MDBNavbarLink href="#">
+                  {signedIn ? "Sign out" : "Sign in"}
+                </MDBNavbarLink>
+              </MDBNavbarItem>
+            </MDBNavbarNav>
 
-                        </MDBNavbarItem>
-                        <MDBNavbarItem>
-                            <MDBNavbarLink href='#'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
-                        </MDBNavbarItem>
-                    </MDBNavbarNav>
-
-                    <form className='d-flex input-group w-auto'>
-                        <input type='search' className='form-control' placeholder='Looking for something?' aria-label='Search' />
-                        <MDBBtn color='primary'>Search</MDBBtn>
-                    </form>
-                </MDBCollapse>
-
-            </MDBContainer>
-        </MDBNavbar>
+            <form className="d-flex input-group w-auto">
+              <input
+                type="search"
+                className="form-control"
+                placeholder="Looking for something?"
+                aria-label="Search"
+              />
+              <MDBBtn color="primary">Search</MDBBtn>
+            </form>
+          </MDBCollapse>
+        </MDBContainer>
+      </MDBNavbar>
     );
 }
 //     return (
