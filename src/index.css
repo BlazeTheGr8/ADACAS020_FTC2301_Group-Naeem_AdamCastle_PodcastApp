@@ -84,13 +84,13 @@
     font-family: Arial, sans-serif;
   }
   
-  .show-image {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
+ .show-image {
+  max-width: 200px; /* Adjust the value as needed to make the image smaller */
+  height: auto;
+  margin: 20px auto; /* Use auto margin to center the image horizontally */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
   
   .show-title {
     font-size: 24px;

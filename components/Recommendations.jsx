@@ -1,4 +1,5 @@
 import React from 'react';
+import { Container } from '@mui/material';
 import {
     MDBCarousel,
     MDBCarouselItem,
@@ -40,15 +41,14 @@ export default function Recommendations(props) {
             </div>
         )
     })
-
     
 
     return (
         <>
-            {!apiComplete ? <p>Fetching your recommendations</p> : <MDBCarousel showControls showIndicators fade dark className='parent'>
+            {!apiComplete ? <p>Fetching your recommendations</p> : <Container maxWidth="sm"><MDBCarousel showControls showIndicators fade dark className='parent'>
                 <p className='recommended'>Recommended</p>
                 {elements}
-            </MDBCarousel>}
+            </MDBCarousel></Container>}
         </>
 
     );
