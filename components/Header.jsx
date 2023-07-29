@@ -44,19 +44,6 @@ function Header(props) {
                 <MDBNavbarLink href="/">Home</MDBNavbarLink>
               </MDBNavbarItem>
 
-              <MDBNavbarItem>
-                <MDBDropdown>
-                  <MDBDropdownToggle tag="a" className="nav-link" role="button">
-                    Genres
-                  </MDBDropdownToggle>
-                  <MDBDropdownMenu>
-                    <MDBDropdownItem link>Sign in</MDBDropdownItem>
-                    <MDBDropdownItem link>Another action</MDBDropdownItem>
-                    <MDBDropdownItem link>Something else here</MDBDropdownItem>
-                  </MDBDropdownMenu>
-                </MDBDropdown>
-              </MDBNavbarItem>
-
                         <MDBNavbarItem>
                             {signedIn ? <MDBNavbarItem>
                                 <MDBNavbarLink href='#'>Favorites</MDBNavbarLink>
@@ -69,16 +56,6 @@ function Header(props) {
                             <MDBNavbarLink href='/login'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
                         </MDBNavbarItem>
                     </MDBNavbarNav>
-
-            <form className="d-flex input-group w-auto">
-              <input
-                type="search"
-                className="form-control"
-                placeholder="Looking for something?"
-                aria-label="Search"
-              />
-              <MDBBtn color="primary">Search</MDBBtn>
-            </form>
           </MDBCollapse>
         </MDBContainer>
       </MDBNavbar>

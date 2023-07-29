@@ -226,11 +226,20 @@ function LandingPage(props) {
           </Stack>
 
           {/* Add the search bar */}
+        </Toolbar>
+        <Toolbar>
           <input
             type="text"
             placeholder="Search shows..."
             value={searchQuery}
             onChange={handleSearchInputChange}
+            style={{
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+              fontSize: "1rem",
+              marginBottom: "8px",
+            }}
           />
         </Toolbar>
       </AppBar>
