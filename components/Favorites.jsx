@@ -14,7 +14,7 @@ const Favorites = (props) => {
         const { data, error } = await supabase
           .from("favorites")
           .select("*")
-          .eq("user_id", "920f053c-f7cd-427e-b1b9-8c7e1222e513");
+          .eq("user_id", (await supabase.auth.getUser()).data.user.id);
 
         if (error) {
           console.error("Error fetching favorite episodes:", error.message);
@@ -81,7 +81,7 @@ const Favorites = (props) => {
         return (
           <div key={index} className="favorite-episode">
             <h2>{showTitle}</h2>
-            <h3>{seasonTitle}</h3>
+            <h3>Season: {seasonTitle}</h3>
             {/* Render episode details */}
             {showsData.map((show) => {
               if (show.id === showId && show.seasons[seasonNumber]) {
