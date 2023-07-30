@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MDBBtn,
@@ -30,6 +30,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Recommendations from "./Recommendations";
+import Fuse from "fuse.js";
 
 const genreList = [
   "Personal Growth",
@@ -63,6 +64,11 @@ function LandingPage(props) {
   const [sortingMethod, setSortingMethod] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [sortedData, setSortedData] = useState([]);
+
+  useEffect(() => {
+    setSortedData(sortData(sortingMethod));
+  }, [sortingMethod]);
 
   const navigate = useNavigate();
 
@@ -97,12 +103,32 @@ function LandingPage(props) {
     }
   };
 
-  const sortedData = sortData(sortingMethod);
+  const fuse = new Fuse(sortedData, {
+    keys: ["title", "description", "genres"],
+    threshold: 0.4,
+    includeScore: true,
+  });
 
-  // Filter the data based on the search query and selected genre
-  const filteredData = sortedData.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleShowClick = (showId) => {
+    onShowClick(showId);
+    navigate(`/shows/${showId}`);
+  };
+
+  const handleSortChange = (event) => {
+    setSortingMethod(event.target.value);
+  };
+
+  const handleGenreChange = (event) => {
+    setSelectedGenre(event.target.value);
+  };
+
+  const handleSearchInputChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredData = searchQuery
+    ? fuse.search(searchQuery).map((result) => result.item)
+    : sortedData;
 
   const filteredDataByGenre =
     selectedGenre === "All"
@@ -113,27 +139,17 @@ function LandingPage(props) {
 
   const elements = filteredDataByGenre.map((item) => {
     const { id, title, description, seasons, image, genres, updated } = item;
-
     const maxLength = 100;
     const shortenedDescription = shortenString(description, maxLength);
     const genresWithNames = genres
       ? genres.map((num) => genreList[num - 1])
       : [];
 
-    const handleShowClick = (showId) => {
-      onShowClick(showId);
-      navigate(`/shows/${showId}`);
-    };
-
     function formatDate(dateString) {
       const date = new Date(dateString);
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const day = date.getDate().toString().padStart(2, "0");
-      const hours = date.getHours().toString().padStart(2, "0");
-      const minutes = date.getMinutes().toString().padStart(2, "0");
-      const seconds = date.getSeconds().toString().padStart(2, "0");
-
       return `${day}-${month}-${year}`;
     }
 
@@ -147,42 +163,26 @@ function LandingPage(props) {
         onClick={() => handleShowClick(id)}
       >
         <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-          <CardMedia
-            component="div"
-            sx={{
-              // 16:9
-              pt: "100%",
-            }}
-            image={image}
-          />
+          <CardMedia component="div" sx={{ pt: "100%" }} image={image} />
           <CardContent sx={{ flexGrow: 1 }}>
             <Typography gutterBottom variant="h5" component="h2">
               {title}
             </Typography>
             <Typography>{shortenedDescription}</Typography>
           </CardContent>
+          <CardContent>
+            <Typography>Seasons: {seasons}</Typography>
+          </CardContent>
+          <CardContent>
+            <Typography>Genres: {genresWithNames.join(", ")}</Typography>
+          </CardContent>
           <CardActions>
-            <Typography size="small">{genresWithNames.join(", ")}</Typography>
-            <Typography size="small">
-              Last updated: {formatDate(updated)}
-            </Typography>
+            <Typography>Last updated: {formatDate(updated)}</Typography>
           </CardActions>
         </Card>
       </Grid>
     );
   });
-
-  const handleSortChange = (event) => {
-    setSortingMethod(event.target.value);
-  };
-
-  const handleGenreChange = (event) => {
-    setSelectedGenre(event.target.value);
-  };
-
-  const handleSearchInputChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
 
   return (
     <ThemeProvider theme={createTheme()}>
@@ -206,7 +206,6 @@ function LandingPage(props) {
             </Select>
           </Stack>
 
-          {/* New dropdown for sorting by genre */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography variant="subtitle1" color="inherit">
               Sort by Genre:
@@ -224,8 +223,6 @@ function LandingPage(props) {
               ))}
             </Select>
           </Stack>
-
-          {/* Add the search bar */}
         </Toolbar>
         <Toolbar>
           <input

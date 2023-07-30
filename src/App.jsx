@@ -6,6 +6,7 @@ import Recommendations from '../components/Recommendations';
 import ShowDetails from '../components/ShowDetails';
 import Login from '../components/Login';
 import Signup from "../components/Signup"
+import Favorites from "../components/Favorites"
 
 const App = () => {
   const [state, setState] = useState({
@@ -55,7 +56,8 @@ const App = () => {
           exact
           path="/"
           element={
-            state.showData && (
+            state.showData &&
+            (state.signedIn ? (
               <>
                 <Recommendations
                   showsData={state}
@@ -66,32 +68,54 @@ const App = () => {
                   onShowClick={handleShowClick} // Pass the handleShowClick function to LandingPage
                 />
               </>
-            )
+            ) : (
+              <Login signIn={handleSignIn} />
+            ))
           }
         />
         <Route
           exact
           path="/shows"
           element={
-            <ShowDetails
-              showData={state.showData}
-              currentShow={state.currentShow}
-            />
+            state.signedIn ? (
+              <ShowDetails
+                showData={state.showData}
+                currentShow={state.currentShow}
+              />
+            ) : (
+              <Login signIn={handleSignIn} />
+            )
           }
         />
         <Route
           exact
           path="/shows/:showId"
           element={
-            <ShowDetails
-              showData={state.showData}
-              currentShow={state.previewData}
-            />
+            state.signedIn ? (
+              <ShowDetails
+                showData={state.showData}
+                currentShow={state.previewData}
+              />
+            ) : (
+              <Login signIn={handleSignIn} />
+            )
           }
         />
-        <Route exact path="/login" element={<Login
-          signIn={handleSignIn}
-        />} />
+        <Route
+          exact
+          path="/favorites"
+          element={
+            state.signedIn ? (
+              <Favorites
+                showsData={state.showData}
+                currentShow={state.previewData}
+              />
+            ) : (
+              <Login signIn={handleSignIn} />
+            )
+          }
+        />
+        <Route exact path="/login" element={<Login signIn={handleSignIn} />} />
         <Route exact path="/signup" element={<Signup />} />
         {/* <Route exact path="/login" component={Login} />
         <Route exact path="/shows" component={ShowList} />

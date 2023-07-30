@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
 import supabase from "../supabase";
@@ -25,7 +26,7 @@ const Login = (props) => {
     event.preventDefault();
 
     try {
-      const { user, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -33,7 +34,7 @@ const Login = (props) => {
       if (error) {
         console.error("Error signing in:", error.message);
       } else {
-        console.log("User signed in:", user);
+        console.log("User signed in:", data.user.id);
         // Redirect the user to the home page
         navigate("/");
         signIn();

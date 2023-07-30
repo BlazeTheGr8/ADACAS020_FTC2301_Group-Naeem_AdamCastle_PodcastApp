@@ -1,66 +1,84 @@
-import React from 'react';
-import { useState } from 'react';
+// @ts-nocheck
+
+import React from "react";
+import { useState } from "react";
 import {
-    MDBContainer,
-    MDBNavbar,
-    MDBNavbarBrand,
-    MDBNavbarToggler,
-    MDBIcon,
-    MDBNavbarNav,
-    MDBNavbarItem,
-    MDBNavbarLink,
-    MDBBtn,
-    MDBDropdown,
-    MDBDropdownToggle,
-    MDBDropdownMenu,
-    MDBDropdownItem,
-    MDBCollapse,
-} from 'mdb-react-ui-kit';
+  MDBContainer,
+  MDBNavbar,
+  MDBNavbarBrand,
+  MDBNavbarToggler,
+  MDBIcon,
+  MDBNavbarNav,
+  MDBNavbarItem,
+  MDBNavbarLink,
+  MDBCollapse,
+} from "mdb-react-ui-kit";
+import { useNavigate } from "react-router-dom";
 
 function Header(props) {
-    const { signedIn } = props
-    const [showBasic, setShowBasic] = useState(false);
+  const { signedIn } = props;
+  const [showBasic, setShowBasic] = useState(false);
 
-    return (
-      <MDBNavbar expand="lg" light bgColor="light">
-        <MDBContainer fluid>
-          <MDBNavbarBrand href="#">
-            PodCast<i>le</i>
-          </MDBNavbarBrand>
+  const navigate = useNavigate();
 
-          <MDBNavbarToggler
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-            onClick={() => setShowBasic(!showBasic)}
-          >
-            <MDBIcon icon="bars" fas />
-          </MDBNavbarToggler>
+  const handleHomeClick = () => {
+    navigate("/");
+  };
 
-          <MDBCollapse navbar show={showBasic}>
-            <MDBNavbarNav className="mr-auto mb-2 mb-lg-0">
+  const handleFavoritesClick = () => {
+    navigate("/favorites");
+  };
 
-              <MDBNavbarItem>
-                <MDBNavbarLink href="/">Home</MDBNavbarLink>
-              </MDBNavbarItem>
+  return (
+    <MDBNavbar expand="lg" light bgColor="light">
+      <MDBContainer fluid>
+        <MDBNavbarBrand href="#">
+          PodCast<i>le</i>
+        </MDBNavbarBrand>
 
-                        <MDBNavbarItem>
-                            {signedIn ? <MDBNavbarItem>
-                                <MDBNavbarLink href='#'>Favorites</MDBNavbarLink>
-                            </MDBNavbarItem> : <MDBNavbarLink disabled href='#' tabIndex={-1} aria-disabled='true'>
-                                Please sign in to view Favorites
-                            </MDBNavbarLink>}
+        <MDBNavbarToggler
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+          onClick={() => setShowBasic(!showBasic)}
+        >
+          <MDBIcon icon="bars" fas />
+        </MDBNavbarToggler>
 
-                        </MDBNavbarItem>
-                        <MDBNavbarItem>
-                            <MDBNavbarLink href='/login'>{signedIn ? 'Sign out' : 'Sign in'}</MDBNavbarLink>
-                        </MDBNavbarItem>
-                    </MDBNavbarNav>
-          </MDBCollapse>
-        </MDBContainer>
-      </MDBNavbar>
-    );
+        <MDBCollapse navbar show={showBasic}>
+          <MDBNavbarNav className="mr-auto mb-2 mb-lg-0">
+            <MDBNavbarItem>
+              <MDBNavbarLink onClick={handleHomeClick}>Home</MDBNavbarLink>
+            </MDBNavbarItem>
+
+            <MDBNavbarItem>
+              {signedIn ? (
+                <MDBNavbarLink onClick={handleFavoritesClick}>Favorites</MDBNavbarLink>
+              ) : (
+                <MDBNavbarLink
+                  disabled
+                  href="#"
+                  tabIndex={-1}
+                  aria-disabled="true"
+                >
+                  Please sign in to view Favorites
+                </MDBNavbarLink>
+              )}
+            </MDBNavbarItem>
+
+            <MDBNavbarItem>
+              <MDBNavbarLink href="/login">
+                {signedIn ? "Sign out" : "Sign in"}
+              </MDBNavbarLink>
+            </MDBNavbarItem>
+          </MDBNavbarNav>
+        </MDBCollapse>
+      </MDBContainer>
+    </MDBNavbar>
+  );
 }
+
+export default Header;
 //     return (
 //         //   <header classNameName="header-container">
 //         //     <div classNameName="header-content">
@@ -123,17 +141,14 @@ function Header(props) {
 //     );
 // };
 
-export default Header;
-
-
-      //   <div classNameName='container-fluid'>
-    //     <div classNameName='row'>
-    //       <div classNameName='col-xs-6'><img
-    //           // src="../src/assets/podcast-logo.png"
-    //           alt="Podcastify Logo"
-    //           classNameName="app-logo img-responsive"
-    //         /></div>
-    //       <div classNameName='col-xs-6'><h1 classNameName="app-name">Podcastify</h1></div>
-    //     </div>
-    //     <button classNameName='btn btn-primary'>Hello</button>
-    //   </div>
+//   <div classNameName='container-fluid'>
+//     <div classNameName='row'>
+//       <div classNameName='col-xs-6'><img
+//           // src="../src/assets/podcast-logo.png"
+//           alt="Podcastify Logo"
+//           classNameName="app-logo img-responsive"
+//         /></div>
+//       <div classNameName='col-xs-6'><h1 classNameName="app-name">Podcastify</h1></div>
+//     </div>
+//     <button classNameName='btn btn-primary'>Hello</button>
+//   </div>

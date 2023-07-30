@@ -39,3 +39,21 @@ async function fetchShows() {
     }
   }
     
+
+
+
+
+  useEffect(() => {
+    async function getUserAndLog() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        console.log(user.id);
+        setUser(user.id);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    }
+    getUserAndLog();
+  }, []);
