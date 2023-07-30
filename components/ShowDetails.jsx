@@ -185,7 +185,8 @@ const ShowDetails = (props) => {
         user_id: (await supabase.auth.getUser()).data.user.id,
         show_id: episodes[episodes.length - 1].showId,
         season_number: episodes[episodes.length - 1].seasonNumber + 1,
-        episode_number: episodes[episodes.length - 1].episodeNumber + 1,
+          episode_number: episodes[episodes.length - 1].episodeNumber + 1,
+        time_added: new Date()
       });
       if (error) {
         console.error("Error saving favorite episodes:", error.message);
@@ -238,7 +239,9 @@ const ShowDetails = (props) => {
             <p className="selected-title">
               Title: {seasons[selectedSeason].title}
             </p>
-            <p className="selected-episodes">Episodes:</p>
+            <p className="selected-episodes">
+              Number of Episodes:{seasons[selectedSeason].episodes.length}
+            </p>
             <ul>
               {seasons[selectedSeason].episodes.map((episode, index) => (
                 <li key={index}>
