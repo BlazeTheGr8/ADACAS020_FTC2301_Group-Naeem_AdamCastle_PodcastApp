@@ -103,16 +103,13 @@ const App = () => {
         />
         <Route
           exact
-          path="/favorites"
+          path="/favorites/:userId"
           element={
-            state.signedIn ? (
-              <Favorites
-                showsData={state.showData}
-                currentShow={state.previewData}
-              />
-            ) : (
-              <Login signIn={handleSignIn} />
-            )
+            
+            <Favorites
+              showsData={state.showData}
+              currentShow={state.previewData}
+            />
           }
         />
         <Route exact path="/login" element={<Login signIn={handleSignIn} />} />

@@ -18,9 +18,15 @@ import Link from "@mui/material/Link";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import { useParams } from "react-router-dom";
 
 const Favorites = (props) => {
+  const {userId} = useParams()
   const { showsData } = props;
+
+
+  const [allPreviewData, setAllPreviewData] = useState([])
+  const [allShowData, setAllShowData] = useState([])
 
   const [favoriteEpisodes, setFavoriteEpisodes] = useState([]);
   const [sortOption, setSortOption] = useState("All");
@@ -33,20 +39,40 @@ const Favorites = (props) => {
         const { data, error } = await supabase
           .from("favorites")
           .select("*")
-          .eq("user_id", (await supabase.auth.getUser()).data.user.id);
+          .eq("user_id", userId);
 
         if (error) {
           console.error("Error fetching favorite episodes:", error.message);
         } else {
-          // Convert fetched data to the desired format
-          const favoriteEpisodesData = data.map((episode) => ({
-            showId: episode.show_id,
-            seasonNumber: episode.season_number - 1,
-            episodeNumber: episode.episode_number - 1,
-            id: episode.id,
-            time: episode.time_added, // Include the time_added from Supabase
-          }));
-          setFavoriteEpisodes(favoriteEpisodesData);
+          // Convert fetched data to the desired format, including showTitle and seasonTitle
+          const favoriteEpisodesData = data.map(async (episode) => {
+            const showId = episode.show_id;
+            const seasonNumber = episode.season_number - 1;
+            const episodeNumber = episode.episode_number - 1;
+            const id = episode.id;
+            const time = episode.time_added;
+
+            const showTitle = getShowTitle(showId); // Fetch showTitle
+            const seasonTitle = getSeasonTitle(showId, seasonNumber); // Fetch seasonTitle
+
+            // Fetch the episode data to include in the favoriteEpisodesData array
+            const show = showsData.find((item) => item.id === showId);
+            const episodeData = show?.seasons[seasonNumber]?.episodes[episodeNumber];
+
+            return {
+              showId,
+              seasonNumber,
+              episodeNumber,
+              id,
+              time,
+              showTitle,
+              seasonTitle,
+              episodeData, // Include the episode data for sorting and rendering
+            };
+          });
+
+          // Wait for all async calls to complete and then set the favoriteEpisodes state
+          Promise.all(favoriteEpisodesData).then((data) => setFavoriteEpisodes(data));
         }
       } catch (error) {
         console.error("Error fetching favorite episodes:", error.message);
@@ -55,9 +81,34 @@ const Favorites = (props) => {
   };
 
   // Use useEffect to fetch favorite episodes when the component mounts
+  // Use useEffect to fetch data when the component mounts, but only if showsData is not provided through props
   useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch previewData
+        if (!showsData) {
+          const res = await fetch("https://podcast-api.netlify.app/shows");
+          const previewData = await res.json();
+          setAllPreviewData(previewData);
+        }
+
+        // Fetch showData
+        if (!showsData || !showsData.showData || !showsData.apiComplete) {
+          const showIds = allPreviewData.map((item) => item.id);
+          const showPromises = showIds.map((id) =>
+            fetch(`https://podcast-api.netlify.app/id/${id}`).then((res) => res.json())
+          );
+          const showData = await Promise.all(showPromises);
+          setAllShowData(showData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
     fetchFavoriteEpisodes();
-  }, []);
+  }, [showsData, userId]);
 
   // Function to get the show title based on showId
   const getShowTitle = (showId) => {
@@ -101,20 +152,28 @@ const Favorites = (props) => {
         return episodes;
       case "A-Z":
         return episodes.sort((a, b) => {
-          const episodeA = showsData.find((show) => show.id === a.showId)?.seasons[a.seasonNumber]?.episodes[a.episodeNumber];
-          const episodeB = showsData.find((show) => show.id === b.showId)?.seasons[b.seasonNumber]?.episodes[b.episodeNumber];
-          return episodeA?.title.localeCompare(episodeB?.title);
+          const episodeA = a.episodeData;
+          const episodeB = b.episodeData;
+          return episodeA?.title.localeCompare(episodeB?.title) || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
         });
       case "Z-A":
         return episodes.sort((a, b) => {
-          const episodeA = showsData.find((show) => show.id === a.showId)?.seasons[a.seasonNumber]?.episodes[a.episodeNumber];
-          const episodeB = showsData.find((show) => show.id === b.showId)?.seasons[b.seasonNumber]?.episodes[b.episodeNumber];
-          return episodeB?.title.localeCompare(episodeA?.title);
+          const episodeA = a.episodeData;
+          const episodeB = b.episodeData;
+          return episodeB?.title.localeCompare(episodeA?.title) || b.showTitle.localeCompare(a.showTitle) || b.seasonTitle.localeCompare(a.seasonTitle);
         });
       case "MOST RECENT":
-        return episodes.sort((a, b) => new Date(b.time) - new Date(a.time));
+        return episodes.sort((a, b) => {
+          const dateA = new Date(a.time);
+          const dateB = new Date(b.time);
+          return dateB - dateA || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
+        });
       case "LEAST RECENT":
-        return episodes.sort((a, b) => new Date(a.time) - new Date(b.time));
+        return episodes.sort((a, b) => {
+          const dateA = new Date(a.time);
+          const dateB = new Date(b.time);
+          return dateA - dateB || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
+        });
       default:
         return episodes;
     }
@@ -122,8 +181,8 @@ const Favorites = (props) => {
 
   // Group favorite episodes by showTitle and seasonTitle
   const groupedFavoriteEpisodes = favoriteEpisodes.reduce((acc, episode) => {
-    const showTitle = getShowTitle(episode.showId);
-    const seasonTitle = getSeasonTitle(episode.showId, episode.seasonNumber);
+    const showTitle = episode.showTitle;
+    const seasonTitle = episode.seasonTitle;
     const key = `${showTitle}-${episode.showId}`;
 
     if (!acc[key]) {
@@ -156,7 +215,7 @@ const Favorites = (props) => {
             {episodes.map((episode, index) => {
               const { showId, seasonNumber, episodeNumber, id, time, seasonTitle } = episode;
 
-              // Render the season title only if it's different from the last one
+              // Render the season title only if it's different from the last
               const shouldRenderSeasonTitle = seasonTitle !== lastSeasonTitle;
               lastSeasonTitle = seasonTitle;
 
@@ -200,7 +259,7 @@ const Favorites = (props) => {
     const sortedEpisodes = sortEpisodes([...favoriteEpisodes], sortOption);
 
     renderedEpisodes = sortedEpisodes.map((episode, index) => {
-      const { showId, seasonNumber, episodeNumber, id, time, seasonTitle } = episode;
+      const { showId, seasonNumber, episodeNumber, id, time, showTitle, seasonTitle } = episode; // Added showTitle and seasonTitle here
 
       // Render the episode details for individual episodes
       return (
@@ -208,6 +267,8 @@ const Favorites = (props) => {
           {/* Render episode details */}
           {/* Display the time added */}
           <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
+          <p>Show Title: {showTitle}</p> {/* Display the showTitle */}
+          <p>Season Title: {seasonTitle}</p> {/* Display the seasonTitle */}
           {showsData.map((show) => {
             if (show.id === showId && show.seasons[seasonNumber]) {
               const episodeData = show.seasons[seasonNumber].episodes[episodeNumber];

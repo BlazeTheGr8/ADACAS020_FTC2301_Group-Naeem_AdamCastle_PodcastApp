@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import {
   MDBContainer,
@@ -14,19 +14,37 @@ import {
   MDBCollapse,
 } from "mdb-react-ui-kit";
 import { useNavigate } from "react-router-dom";
+import supabase from "../supabase";
 
 function Header(props) {
+
+  const [userId, setUserId] = useState('') 
   const { signedIn } = props;
   const [showBasic, setShowBasic] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function getUserAndLog() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        console.log(user.id);
+        setUserId(user.id);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    }
+    getUserAndLog();
+  }, []);
 
   const handleHomeClick = () => {
     navigate("/");
   };
 
   const handleFavoritesClick = () => {
-    navigate("/favorites");
+    navigate(`/favorites/${userId}`);
   };
 
   return (
