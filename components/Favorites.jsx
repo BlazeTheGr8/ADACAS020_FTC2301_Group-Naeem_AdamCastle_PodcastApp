@@ -140,7 +140,7 @@ const Favorites = (props) => {
     }
   };
 
-  // Function to handle the sorting logic
+  // Function to handle the sorting logic for favorites
   const handleSortChange = (event) => {
     setSortOption(event.target.value);
   };
