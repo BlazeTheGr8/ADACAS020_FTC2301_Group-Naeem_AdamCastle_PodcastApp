@@ -23,6 +23,7 @@ const Favorites = (props) => {
   const { showsData } = props;
 
   const [favoriteEpisodes, setFavoriteEpisodes] = useState([]);
+  const [sortOption, setSortOption] = useState("All");
 
   // Function to fetch user's favorite episodes from Supabase
   const fetchFavoriteEpisodes = async () => {
@@ -88,19 +89,150 @@ const Favorites = (props) => {
     }
   };
 
+  // Function to handle the sorting logic
+  const handleSortChange = (event) => {
+    setSortOption(event.target.value);
+  };
+
+  // Function to sort episodes by episode title and time added
+  const sortEpisodes = (episodes, option) => {
+    switch (option) {
+      case "All":
+        return episodes;
+      case "A-Z":
+        return episodes.sort((a, b) => {
+          const episodeA = showsData.find((show) => show.id === a.showId)?.seasons[a.seasonNumber]?.episodes[a.episodeNumber];
+          const episodeB = showsData.find((show) => show.id === b.showId)?.seasons[b.seasonNumber]?.episodes[b.episodeNumber];
+          return episodeA?.title.localeCompare(episodeB?.title);
+        });
+      case "Z-A":
+        return episodes.sort((a, b) => {
+          const episodeA = showsData.find((show) => show.id === a.showId)?.seasons[a.seasonNumber]?.episodes[a.episodeNumber];
+          const episodeB = showsData.find((show) => show.id === b.showId)?.seasons[b.seasonNumber]?.episodes[b.episodeNumber];
+          return episodeB?.title.localeCompare(episodeA?.title);
+        });
+      case "MOST RECENT":
+        return episodes.sort((a, b) => new Date(b.time) - new Date(a.time));
+      case "LEAST RECENT":
+        return episodes.sort((a, b) => new Date(a.time) - new Date(b.time));
+      default:
+        return episodes;
+    }
+  };
+
   // Group favorite episodes by showTitle and seasonTitle
   const groupedFavoriteEpisodes = favoriteEpisodes.reduce((acc, episode) => {
     const showTitle = getShowTitle(episode.showId);
     const seasonTitle = getSeasonTitle(episode.showId, episode.seasonNumber);
-    const key = `${showTitle}-${seasonTitle}`;
+    const key = `${showTitle}-${episode.showId}`;
 
     if (!acc[key]) {
-      acc[key] = [];
+      acc[key] = {
+        showTitle,
+        episodes: [],
+      };
     }
 
-    acc[key].push(episode);
+    acc[key].episodes.push({ ...episode, seasonTitle });
     return acc;
   }, {});
+
+  // Track the last show title to avoid rendering it again
+  let lastShowTitle = null;
+
+  // Rendering logic based on the selected sortOption
+  let renderedEpisodes;
+  if (sortOption === "All") {
+    renderedEpisodes = Object.entries(groupedFavoriteEpisodes).map(
+      ([groupKey, groupData]) => {
+        const { showTitle, episodes } = groupData;
+
+        // Track the last season title for each show to avoid rendering it again
+        let lastSeasonTitle = null;
+
+        return (
+          <div key={groupKey} className="favorite-group">
+            <h2>{showTitle}</h2>
+            {episodes.map((episode, index) => {
+              const { showId, seasonNumber, episodeNumber, id, time, seasonTitle } = episode;
+
+              // Render the season title only if it's different from the last one
+              const shouldRenderSeasonTitle = seasonTitle !== lastSeasonTitle;
+              lastSeasonTitle = seasonTitle;
+
+              return (
+                <div key={index} className="favorite-episode">
+                  {/* Render episode details */}
+                  {/* Display the time added */}
+                  <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
+                  {showsData.map((show) => {
+                    if (show.id === showId && show.seasons[seasonNumber]) {
+                      const episodeData =
+                        show.seasons[seasonNumber].episodes[episodeNumber];
+                      return (
+                        <div key={episodeNumber}>
+                          {shouldRenderSeasonTitle && <h3>Season: {seasonTitle}</h3>}
+                          <p>Episode {episodeData.episode}</p>
+                          <p>Title: {episodeData.title}</p>
+                          <p>Description: {episodeData.description}</p>
+                          <audio controls>
+                            <source src={episodeData.file} type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                          </audio>
+                          {/* Button to remove the episode from favorites */}
+                          <button onClick={() => handleRemoveFromFavorites(id)}>
+                            Remove from Favorites
+                          </button>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    );
+  } else {
+    // Sort episodes based on the selected sorting option
+    const sortedEpisodes = sortEpisodes([...favoriteEpisodes], sortOption);
+
+    renderedEpisodes = sortedEpisodes.map((episode, index) => {
+      const { showId, seasonNumber, episodeNumber, id, time, seasonTitle } = episode;
+
+      // Render the episode details for individual episodes
+      return (
+        <div key={index} className="favorite-episode">
+          {/* Render episode details */}
+          {/* Display the time added */}
+          <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
+          {showsData.map((show) => {
+            if (show.id === showId && show.seasons[seasonNumber]) {
+              const episodeData = show.seasons[seasonNumber].episodes[episodeNumber];
+              return (
+                <div key={episodeNumber}>
+                  <p>Episode {episodeData.episode}</p>
+                  <p>Title: {episodeData.title}</p>
+                  <p>Description: {episodeData.description}</p>
+                  <audio controls>
+                    <source src={episodeData.file} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                  {/* Button to remove the episode from favorites */}
+                  <button onClick={() => handleRemoveFromFavorites(id)}>
+                    Remove from Favorites
+                  </button>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      );
+    });
+  }
 
   return (
     <div className="favorites-container">
@@ -112,8 +244,8 @@ const Favorites = (props) => {
               Sort by:
             </Typography>
             <Select
-              value="All"
-            //   onChange={handleSortChange}
+              value={sortOption}
+              onChange={handleSortChange}
               variant="outlined"
             >
               <MenuItem value="All">All</MenuItem>
@@ -125,51 +257,9 @@ const Favorites = (props) => {
           </Stack>
         </Toolbar>
       </AppBar>
-      {Object.entries(groupedFavoriteEpisodes).map(([groupKey, episodes]) => (
-        <div key={groupKey} className="favorite-group">
-          <h2>{groupKey.split("-")[0]}</h2>
-          <h3>Season: {groupKey.split("-")[1]}</h3>
-          {episodes.map((episode, index) => {
-            const { showId, seasonNumber, episodeNumber, id, time } = episode; // Extract time here
-            return (
-              <div key={index} className="favorite-episode">
-                {/* Render episode details */}
-                {/* Display the time added */}
-                <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
-                {showsData.map((show) => {
-                  if (show.id === showId && show.seasons[seasonNumber]) {
-                    const episode =
-                      show.seasons[seasonNumber].episodes[episodeNumber];
-                    return (
-                      <div key={episodeNumber}>
-                        <p>Episode {episode.episode}</p>
-                        <p>Title: {episode.title}</p>
-                        <p>Description: {episode.description}</p>
-                        <audio controls>
-                          <source src={episode.file} type="audio/mpeg" />
-                          Your browser does not support the audio element.
-                        </audio>
-                        {/* Button to remove the episode from favorites */}
-                        <button onClick={() => handleRemoveFromFavorites(id)}>
-                          Remove from Favorites
-                        </button>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+      {renderedEpisodes}
     </div>
   );
 };
 
 export default Favorites;
-
-
-
-
-
