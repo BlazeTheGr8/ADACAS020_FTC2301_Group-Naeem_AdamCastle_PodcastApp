@@ -41,13 +41,17 @@ const SignUp = () => {
           ]);
 
         console.log("User signed up:", user);
-        // Redirect the user to a dashboard or protected route upon successful signup.
+        // Future logic to redirect the user to a dashboard or protected route upon successful signup.
       }
     } catch (error) {
       console.error("Error signing up:", error.message);
     }
   };
 
+  /**
+   * The function `handleInputChange` is used to update the form data by setting the value of the input
+   * field with the corresponding name.
+   */
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));

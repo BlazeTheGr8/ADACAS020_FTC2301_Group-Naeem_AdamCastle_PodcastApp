@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import "../src/index.css"; // Import the CSS file
+import "../src/index.css";
 import { MenuItem, Toolbar, Stack, Typography, Select } from "@mui/material";
 import { MDBBtn } from "mdb-react-ui-kit";
 import supabase from "../supabase";
@@ -17,7 +17,6 @@ const genreList = [
   "Kids and Family",
 ];
 
-// Function to map genre numbers to genre names from genreList
 const mapGenres = (genreNumbers) => {
   return genreNumbers.map((number) => {
     if (number >= 0 && number < genreList.length) {
@@ -31,27 +30,22 @@ const ShowDetails = (props) => {
   const { showId } = useParams();
   const { showData, currentShow } = props;
 
-  // Use showId to find the corresponding show object
   const result = showData.find((item) => item.id === showId);
 
-  // If result is not defined, handle the case gracefully
   if (!result) {
     return <div>Loading...</div>;
   }
 
   const { description, id, image, seasons, title, updated } = result;
 
-  // Find the genreObject by matching showId in the currentShow array
   const genreObject = currentShow.find((item) => item.id === showId);
 
-  // If genreObject is not defined, handle the case gracefully
   if (!genreObject) {
     return <div>Loading...</div>;
   }
 
   const { genres } = genreObject;
 
-  // Map genre numbers to genre names
   const mappedGenres = mapGenres(genres);
 
   const handleSeasonSelectChange = (event) => {
@@ -64,8 +58,10 @@ const ShowDetails = (props) => {
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [favoriteEpisodes, setFavoriteEpisodes] = useState([]);
   const [currentUser, setCurrentUser] = useState("");
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [episodeProgress, setEpisodeProgress] = useState({});
 
-  // Function to fetch user's favorite episodes from Supabase
   const fetchFavoriteEpisodes = async () => {
     const user = supabase.auth.getUser();
     if (user) {
@@ -79,7 +75,6 @@ const ShowDetails = (props) => {
         if (error) {
           console.error("Error fetching favorite episodes:", error.message);
         } else {
-          // Convert fetched data to the desired format
           const favoriteEpisodesData = data.map((episode) => ({
             showId: episode.show_id,
             seasonNumber: episode.season_number - 1,
@@ -93,7 +88,6 @@ const ShowDetails = (props) => {
     }
   };
 
-  // Use useEffect to fetch favorite episodes when the component mounts
   useEffect(() => {
     async function getUserAndLog() {
       try {
@@ -107,11 +101,14 @@ const ShowDetails = (props) => {
     }
     getUserAndLog();
     fetchFavoriteEpisodes();
+
+    const savedProgress = localStorage.getItem("episodeProgress");
+    if (savedProgress) {
+      setEpisodeProgress(JSON.parse(savedProgress));
+    }
   }, []);
 
-  // Function to handle marking episodes as favorites or unfavorites
   const handleFavoriteEpisode = async (seasonNumber, episodeNumber) => {
-    // Check if the episode is already marked as a favorite
     const isFavorite = favoriteEpisodes.some(
       (episode) =>
         episode.seasonNumber === seasonNumber &&
@@ -119,7 +116,6 @@ const ShowDetails = (props) => {
     );
 
     if (isFavorite) {
-      // If the episode is already marked as a favorite, remove it from the list
       const updatedFavorites = favoriteEpisodes.filter(
         (episode) =>
           episode.seasonNumber !== seasonNumber ||
@@ -127,10 +123,8 @@ const ShowDetails = (props) => {
       );
       setFavoriteEpisodes(updatedFavorites);
 
-      // Remove the episode from the database
       await removeFavoriteEpisode(showId, seasonNumber, episodeNumber);
     } else {
-      // If the episode is not marked as a favorite, add it to the list
       const newFavorite = {
         showId: showId,
         seasonNumber: seasonNumber,
@@ -138,12 +132,26 @@ const ShowDetails = (props) => {
       };
       setFavoriteEpisodes([...favoriteEpisodes, newFavorite]);
 
-      // Save the updated favorite episodes list to Supabase
       saveFavoriteEpisodes([...favoriteEpisodes, newFavorite]);
+    }
+
+    if (!isFavorite) {
+      const episodeKey = `${showId}_${seasonNumber}_${episodeNumber}`;
+      const audioElement = document.getElementById(episodeKey);
+      if (audioElement && audioElement.currentTime > 0) {
+        const progress = audioElement.currentTime;
+        setEpisodeProgress({
+          ...episodeProgress,
+          [episodeKey]: progress,
+        });
+        localStorage.setItem(
+          "episodeProgress",
+          JSON.stringify(episodeProgress)
+        );
+      }
     }
   };
 
-  // Function to remove a favorite episode from the Supabase database
   const removeFavoriteEpisode = async (showId, seasonNumber, episodeNumber) => {
     try {
       const user = supabase.auth.getUser();
@@ -170,23 +178,20 @@ const ShowDetails = (props) => {
     }
   };
 
-  // Function to save favorite episodes to Supabase
   const saveFavoriteEpisodes = async (episodes) => {
-    // Check if the user is signed in
     const user = supabase.auth.getUser();
     if (!user) {
       alert("Please sign in to save favorite episodes.");
       return;
     }
 
-    // Save favorite episodes to Supabase
     try {
       const { data, error } = await supabase.from("favorites").insert({
         user_id: (await supabase.auth.getUser()).data.user.id,
         show_id: episodes[episodes.length - 1].showId,
         season_number: episodes[episodes.length - 1].seasonNumber + 1,
-          episode_number: episodes[episodes.length - 1].episodeNumber + 1,
-        time_added: new Date()
+        episode_number: episodes[episodes.length - 1].episodeNumber + 1,
+        time_added: new Date(),
       });
       if (error) {
         console.error("Error saving favorite episodes:", error.message);
@@ -198,7 +203,30 @@ const ShowDetails = (props) => {
     }
   };
 
-  // Render the component content
+  const handleTabClose = (event) => {
+    if (isAudioPlaying) {
+      event.preventDefault();
+      event.returnValue = "Audio will stop playing";
+      setShowConfirmationModal(true);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleTabClose);
+    return () => {
+      window.removeEventListener("beforeunload", handleTabClose);
+    };
+  }, [isAudioPlaying]);
+
+  const handleConfirmation = () => {
+    setShowConfirmationModal(false);
+    window.close();
+  };
+
+  const handleCancel = () => {
+    setShowConfirmationModal(false);
+  };
+
   return (
     <div className="show-details-container">
       <img src={image} alt={title} className="show-image" />
@@ -228,7 +256,7 @@ const ShowDetails = (props) => {
         </Stack>
       </Toolbar>
 
-      {selectedSeason !== null &&
+      {seasons[selectedSeason] &&
         selectedSeason !== "none" &&
         selectedSeason !== "all" && (
           <div className="selected-season-details">
@@ -240,36 +268,56 @@ const ShowDetails = (props) => {
               Title: {seasons[selectedSeason].title}
             </p>
             <p className="selected-episodes">
-              Number of Episodes:{seasons[selectedSeason].episodes.length}
+              Number of Episodes: {seasons[selectedSeason].episodes.length}
             </p>
             <ul>
-              {seasons[selectedSeason].episodes.map((episode, index) => (
-                <li key={index}>
-                  <p className="episode">Episode: {episode.episode}</p>
-                  <p className="episode-title">Title: {episode.title}</p>
-                  <p className="episode-description">
-                    Description: {episode.description}
-                  </p>
-                  <audio controls>
-                    <source src={episode.file} type="audio/mpeg" />
-                    Your browser does not support the audio element.
-                  </audio>
-                  {/* Button to mark episode as favorite */}
-                  <MDBBtn
-                    onClick={() => handleFavoriteEpisode(selectedSeason, index)}
-                  >
-                    {favoriteEpisodes.some(
-                      (favEpisode) =>
-                        favEpisode.seasonNumber === selectedSeason &&
-                        favEpisode.episodeNumber === index
-                    )
-                      ? "Unfavorite"
-                      : "Favorite"}
-                  </MDBBtn>
-                </li>
-              ))}
+              {seasons[selectedSeason].episodes.map((episode, index) => {
+                const episodeKey = `${showId}_${selectedSeason}_${index}`;
+                const progress = episodeProgress[episodeKey] || 0;
+                return (
+                  <li key={index}>
+                    <p className="episode">Episode: {episode.episode}</p>
+                    <p className="episode-title">Title: {episode.title}</p>
+                    <p className="episode-description">
+                      Description: {episode.description}
+                    </p>
+                    <audio
+                      controls
+                      onPlay={() => setIsAudioPlaying(true)}
+                      onPause={() => setIsAudioPlaying(false)}
+                      id={episodeKey}
+                      onTimeUpdate={(e) => {
+                        const currentTime = e.target.currentTime;
+                        setEpisodeProgress({
+                          ...episodeProgress,
+                          [episodeKey]: currentTime,
+                        });
+                        localStorage.setItem(
+                          "episodeProgress",
+                          JSON.stringify(episodeProgress)
+                        );
+                      }}
+                    >
+                      <source src={episode.file} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                    <MDBBtn
+                      onClick={() =>
+                        handleFavoriteEpisode(selectedSeason, index)
+                      }
+                    >
+                      {favoriteEpisodes.some(
+                        (favEpisode) =>
+                          favEpisode.seasonNumber === selectedSeason &&
+                          favEpisode.episodeNumber === index
+                      )
+                        ? "Unfavorite"
+                        : "Favorite"}
+                    </MDBBtn>
+                  </li>
+                );
+              })}
             </ul>
-            {/* Button to save favorite episodes */}
             <MDBBtn onClick={() => saveFavoriteEpisodes(favoriteEpisodes)}>
               Save Favorite Episodes
             </MDBBtn>
@@ -283,40 +331,72 @@ const ShowDetails = (props) => {
             <div key={seasonIndex}>
               <h3>Season {seasonIndex + 1}</h3>
               <ul>
-                {season.episodes.map((episode, episodeIndex) => (
-                  <li key={episodeIndex}>
-                    <p className="episode">Episode: {episode.episode}</p>
-                    <p className="episode-title">Title: {episode.title}</p>
-                    <p className="episode-description">
-                      Description: {episode.description}
-                    </p>
-                    <audio controls>
-                      <source src={episode.file} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                    {/* Button to mark episode as favorite */}
-                    <MDBBtn
-                      onClick={() =>
-                        handleFavoriteEpisode(seasonIndex, episodeIndex)
-                      }
-                    >
-                      {favoriteEpisodes.some(
-                        (favEpisode) =>
-                          favEpisode.seasonNumber === seasonIndex &&
-                          favEpisode.episodeNumber === episodeIndex
-                      )
-                        ? "Unfavorite"
-                        : "Favorite"}
-                    </MDBBtn>
-                  </li>
-                ))}
+                {season.episodes.map((episode, episodeIndex) => {
+                  const episodeKey = `${showId}_${seasonIndex}_${episodeIndex}`;
+                  const progress = episodeProgress[episodeKey] || 0;
+                  return (
+                    <li key={episodeIndex}>
+                      <p className="episode">Episode: {episode.episode}</p>
+                      <p className="episode-title">Title: {episode.title}</p>
+                      <p className="episode-description">
+                        Description: {episode.description}
+                      </p>
+                      <audio
+                        controls
+                        onPlay={() => setIsAudioPlaying(true)}
+                        onPause={() => setIsAudioPlaying(false)}
+                        id={episodeKey}
+                        onTimeUpdate={(e) => {
+                          const currentTime = e.target.currentTime;
+                          setEpisodeProgress({
+                            ...episodeProgress,
+                            [episodeKey]: currentTime,
+                          });
+                          localStorage.setItem(
+                            "episodeProgress",
+                            JSON.stringify(episodeProgress)
+                          );
+                        }}
+                      >
+                        <source src={episode.file} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                      <MDBBtn
+                        onClick={() =>
+                          handleFavoriteEpisode(seasonIndex, episodeIndex)
+                        }
+                      >
+                        {favoriteEpisodes.some(
+                          (favEpisode) =>
+                            favEpisode.seasonNumber === seasonIndex &&
+                            favEpisode.episodeNumber === episodeIndex
+                        )
+                          ? "Unfavorite"
+                          : "Favorite"}
+                      </MDBBtn>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
-          {/* Button to save favorite episodes */}
           <MDBBtn onClick={() => saveFavoriteEpisodes(favoriteEpisodes)}>
             Save Favorite Episodes
           </MDBBtn>
+        </div>
+      )}
+
+      {showConfirmationModal && (
+        <div className="confirmation-modal">
+          <h3>Confirm Leaving</h3>
+          <p>
+            Are you sure you want to leave? Audio is still playing. Click
+            "Leave" to close the page or "Cancel" to stay on the page.
+          </p>
+          <div>
+            <button onClick={handleConfirmation}>Leave</button>
+            <button onClick={handleCancel}>Cancel</button>
+          </div>
         </div>
       )}
     </div>

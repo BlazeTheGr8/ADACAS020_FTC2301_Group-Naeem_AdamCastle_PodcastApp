@@ -1,37 +1,33 @@
 import React, { useState, useEffect } from "react";
 import supabase from "../supabase";
 import AppBar from "@mui/material/AppBar";
-import Button from "@mui/material/Button";
-import CameraIcon from "@mui/icons-material/PhotoCamera";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import CssBaseline from "@mui/material/CssBaseline";
-import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
-import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
-import Link from "@mui/material/Link";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { useParams } from "react-router-dom";
 
 const Favorites = (props) => {
-  const {userId} = useParams()
+  const { userId } = useParams();
   const { showsData } = props;
 
-
-  const [allPreviewData, setAllPreviewData] = useState([])
-  const [allShowData, setAllShowData] = useState([])
+  const [allPreviewData, setAllPreviewData] = useState([]);
+  const [allShowData, setAllShowData] = useState([]);
 
   const [favoriteEpisodes, setFavoriteEpisodes] = useState([]);
   const [sortOption, setSortOption] = useState("All");
+  const [audioPlaying, setAudioPlaying] = useState(false);
 
-  // Function to fetch user's favorite episodes from Supabase
+  const handleAudioPlay = () => {
+    setAudioPlaying(true);
+  };
+
+  const handleAudioPause = () => {
+    setAudioPlaying(false);
+  };
+
   const fetchFavoriteEpisodes = async () => {
     const user = supabase.auth.getUser();
     if (user) {
@@ -57,7 +53,8 @@ const Favorites = (props) => {
 
             // Fetch the episode data to include in the favoriteEpisodesData array
             const show = showsData.find((item) => item.id === showId);
-            const episodeData = show?.seasons[seasonNumber]?.episodes[episodeNumber];
+            const episodeData =
+              show?.seasons[seasonNumber]?.episodes[episodeNumber];
 
             return {
               showId,
@@ -72,7 +69,9 @@ const Favorites = (props) => {
           });
 
           // Wait for all async calls to complete and then set the favoriteEpisodes state
-          Promise.all(favoriteEpisodesData).then((data) => setFavoriteEpisodes(data));
+          Promise.all(favoriteEpisodesData).then((data) =>
+            setFavoriteEpisodes(data)
+          );
         }
       } catch (error) {
         console.error("Error fetching favorite episodes:", error.message);
@@ -80,8 +79,6 @@ const Favorites = (props) => {
     }
   };
 
-  // Use useEffect to fetch favorite episodes when the component mounts
-  // Use useEffect to fetch data when the component mounts, but only if showsData is not provided through props
   useEffect(() => {
     async function fetchData() {
       try {
@@ -96,7 +93,9 @@ const Favorites = (props) => {
         if (!showsData || !showsData.showData || !showsData.apiComplete) {
           const showIds = allPreviewData.map((item) => item.id);
           const showPromises = showIds.map((id) =>
-            fetch(`https://podcast-api.netlify.app/id/${id}`).then((res) => res.json())
+            fetch(`https://podcast-api.netlify.app/id/${id}`).then((res) =>
+              res.json()
+            )
           );
           const showData = await Promise.all(showPromises);
           setAllShowData(showData);
@@ -110,13 +109,11 @@ const Favorites = (props) => {
     fetchFavoriteEpisodes();
   }, [showsData, userId]);
 
-  // Function to get the show title based on showId
   const getShowTitle = (showId) => {
     const show = showsData.find((item) => item.id === showId);
     return show ? show.title : "Unknown Show";
   };
 
-  // Function to get the season title based on showId and season number
   const getSeasonTitle = (showId, seasonNumber) => {
     const show = showsData.find((item) => item.id === showId);
     return show && show.seasons[seasonNumber]
@@ -124,7 +121,6 @@ const Favorites = (props) => {
       : "Unknown Season";
   };
 
-  // Function to handle removing an item from favorites
   const handleRemoveFromFavorites = async (favoriteId) => {
     try {
       // Remove the item from the local state
@@ -140,12 +136,10 @@ const Favorites = (props) => {
     }
   };
 
-  // Function to handle the sorting logic for favorites
   const handleSortChange = (event) => {
     setSortOption(event.target.value);
   };
 
-  // Function to sort episodes by episode title and time added
   const sortEpisodes = (episodes, option) => {
     switch (option) {
       case "All":
@@ -154,32 +148,47 @@ const Favorites = (props) => {
         return episodes.sort((a, b) => {
           const episodeA = a.episodeData;
           const episodeB = b.episodeData;
-          return episodeA?.title.localeCompare(episodeB?.title) || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
+          return (
+            episodeA?.title.localeCompare(episodeB?.title) ||
+            a.showTitle.localeCompare(b.showTitle) ||
+            a.seasonTitle.localeCompare(b.seasonTitle)
+          );
         });
       case "Z-A":
         return episodes.sort((a, b) => {
           const episodeA = a.episodeData;
           const episodeB = b.episodeData;
-          return episodeB?.title.localeCompare(episodeA?.title) || b.showTitle.localeCompare(a.showTitle) || b.seasonTitle.localeCompare(a.seasonTitle);
+          return (
+            episodeB?.title.localeCompare(episodeA?.title) ||
+            b.showTitle.localeCompare(a.showTitle) ||
+            b.seasonTitle.localeCompare(a.seasonTitle)
+          );
         });
       case "MOST RECENT":
         return episodes.sort((a, b) => {
           const dateA = new Date(a.time);
           const dateB = new Date(b.time);
-          return dateB - dateA || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
+          return (
+            dateB - dateA ||
+            a.showTitle.localeCompare(b.showTitle) ||
+            a.seasonTitle.localeCompare(b.seasonTitle)
+          );
         });
       case "LEAST RECENT":
         return episodes.sort((a, b) => {
           const dateA = new Date(a.time);
           const dateB = new Date(b.time);
-          return dateA - dateB || a.showTitle.localeCompare(b.showTitle) || a.seasonTitle.localeCompare(b.seasonTitle);
+          return (
+            dateA - dateB ||
+            a.showTitle.localeCompare(b.showTitle) ||
+            a.seasonTitle.localeCompare(b.seasonTitle)
+          );
         });
       default:
         return episodes;
     }
   };
 
-  // Group favorite episodes by showTitle and seasonTitle
   const groupedFavoriteEpisodes = favoriteEpisodes.reduce((acc, episode) => {
     const showTitle = episode.showTitle;
     const seasonTitle = episode.seasonTitle;
@@ -196,33 +205,32 @@ const Favorites = (props) => {
     return acc;
   }, {});
 
-  // Track the last show title to avoid rendering it again
   let lastShowTitle = null;
 
-  // Rendering logic based on the selected sortOption
   let renderedEpisodes;
   if (sortOption === "All") {
     renderedEpisodes = Object.entries(groupedFavoriteEpisodes).map(
       ([groupKey, groupData]) => {
         const { showTitle, episodes } = groupData;
-
-        // Track the last season title for each show to avoid rendering it again
         let lastSeasonTitle = null;
 
         return (
           <div key={groupKey} className="favorite-group">
             <h2>{showTitle}</h2>
             {episodes.map((episode, index) => {
-              const { showId, seasonNumber, episodeNumber, id, time, seasonTitle } = episode;
-
-              // Render the season title only if it's different from the last
+              const {
+                showId,
+                seasonNumber,
+                episodeNumber,
+                id,
+                time,
+                seasonTitle,
+              } = episode;
               const shouldRenderSeasonTitle = seasonTitle !== lastSeasonTitle;
               lastSeasonTitle = seasonTitle;
 
               return (
                 <div key={index} className="favorite-episode">
-                  {/* Render episode details */}
-                  {/* Display the time added */}
                   <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
                   {showsData.map((show) => {
                     if (show.id === showId && show.seasons[seasonNumber]) {
@@ -230,7 +238,9 @@ const Favorites = (props) => {
                         show.seasons[seasonNumber].episodes[episodeNumber];
                       return (
                         <div key={episodeNumber}>
-                          {shouldRenderSeasonTitle && <h3>Season: {seasonTitle}</h3>}
+                          {shouldRenderSeasonTitle && (
+                            <h3>Season: {seasonTitle}</h3>
+                          )}
                           <p>Episode {episodeData.episode}</p>
                           <p>Title: {episodeData.title}</p>
                           <p>Description: {episodeData.description}</p>
@@ -238,7 +248,6 @@ const Favorites = (props) => {
                             <source src={episodeData.file} type="audio/mpeg" />
                             Your browser does not support the audio element.
                           </audio>
-                          {/* Button to remove the episode from favorites */}
                           <button onClick={() => handleRemoveFromFavorites(id)}>
                             Remove from Favorites
                           </button>
@@ -255,23 +264,27 @@ const Favorites = (props) => {
       }
     );
   } else {
-    // Sort episodes based on the selected sorting option
     const sortedEpisodes = sortEpisodes([...favoriteEpisodes], sortOption);
 
     renderedEpisodes = sortedEpisodes.map((episode, index) => {
-      const { showId, seasonNumber, episodeNumber, id, time, showTitle, seasonTitle } = episode; // Added showTitle and seasonTitle here
-
-      // Render the episode details for individual episodes
+      const {
+        showId,
+        seasonNumber,
+        episodeNumber,
+        id,
+        time,
+        showTitle,
+        seasonTitle,
+      } = episode;
       return (
         <div key={index} className="favorite-episode">
-          {/* Render episode details */}
-          {/* Display the time added */}
           <p>Added to Favorites: {new Date(time).toLocaleString()}</p>
-          <p>Show Title: {showTitle}</p> {/* Display the showTitle */}
-          <p>Season Title: {seasonTitle}</p> {/* Display the seasonTitle */}
+          <p>Show Title: {showTitle}</p>
+          <p>Season Title: {seasonTitle}</p>
           {showsData.map((show) => {
             if (show.id === showId && show.seasons[seasonNumber]) {
-              const episodeData = show.seasons[seasonNumber].episodes[episodeNumber];
+              const episodeData =
+                show.seasons[seasonNumber].episodes[episodeNumber];
               return (
                 <div key={episodeNumber}>
                   <p>Episode {episodeData.episode}</p>
@@ -281,7 +294,6 @@ const Favorites = (props) => {
                     <source src={episodeData.file} type="audio/mpeg" />
                     Your browser does not support the audio element.
                   </audio>
-                  {/* Button to remove the episode from favorites */}
                   <button onClick={() => handleRemoveFromFavorites(id)}>
                     Remove from Favorites
                   </button>
@@ -294,6 +306,30 @@ const Favorites = (props) => {
       );
     });
   }
+
+  useEffect(() => {
+    // Add event listeners for audio play and pause events
+    document.addEventListener("play", handleAudioPlay, true);
+    document.addEventListener("pause", handleAudioPause, true);
+
+    // Event listener for the beforeunload event to prompt the user if audio is playing
+    const handleBeforeUnload = (event) => {
+      if (audioPlaying) {
+        event.preventDefault();
+        event.returnValue =
+          "Audio is still playing. Are you sure you want to leave the page?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Clean up the event listeners when the component is unmounted
+    return () => {
+      document.removeEventListener("play", handleAudioPlay, true);
+      document.removeEventListener("pause", handleAudioPause, true);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [showsData, userId, audioPlaying]);
 
   return (
     <div className="favorites-container">
