@@ -12,6 +12,7 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,8 @@ const SignUp = () => {
     email: "",
     password: "",
   });
+
+  const navigate = useNavigate()
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -41,11 +44,12 @@ const SignUp = () => {
           ]);
 
         console.log("User signed up:", user);
-        // Future logic to redirect the user to a dashboard or protected route upon successful signup.
+        
       }
     } catch (error) {
       console.error("Error signing up:", error.message);
     }
+    navigate("/login");
   };
 
   /**
