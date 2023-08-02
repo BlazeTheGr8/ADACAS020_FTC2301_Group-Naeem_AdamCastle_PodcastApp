@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from '../components/Header';
 import LandingPage from '../components/LandingPage';
 import Recommendations from '../components/Recommendations';
@@ -7,10 +7,12 @@ import ShowDetails from '../components/ShowDetails';
 import Login from '../components/Login';
 import Signup from "../components/Signup"
 import Favorites from "../components/Favorites"
+import SuccessfulSignUP from '../components/SuccessfulSignUP';
 
 /* The `App` component is the main component of the application. It is responsible for rendering the
 different routes and components based on the current URL. */
 const App = () => {
+  const [loading, setLoading] = useState(true);
   const [state, setState] = useState({
     signedIn: false,
     previewData: [],
@@ -24,6 +26,7 @@ const App = () => {
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true);
         const res = await fetch("https://podcast-api.netlify.app/shows");
         const previewData = await res.json();
         setState(prev => ({ ...prev, previewData }));
@@ -38,6 +41,8 @@ const App = () => {
         setState(prev => ({ ...prev, showData, apiComplete: true }));
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -49,7 +54,11 @@ const App = () => {
   };
 
   const handleSignIn = () => {
-    setState(prev => ({...prev, signedIn: true}))
+    setState(prev => ({ ...prev, signedIn: true }));
+  };
+
+  if (loading) {
+    return <div>Fetching all app data...</div>;
   }
 
   return (
@@ -67,10 +76,7 @@ const App = () => {
                   showsData={state}
                   onShowClick={handleShowClick}
                 />
-                <LandingPage
-                  showsData={state}
-                  onShowClick={handleShowClick} 
-                />
+                <LandingPage showsData={state} onShowClick={handleShowClick} />
               </>
             ) : (
               <Login signIn={handleSignIn} />
@@ -109,7 +115,6 @@ const App = () => {
           exact
           path="/favorites/:userId"
           element={
-            
             <Favorites
               showsData={state.showData}
               currentShow={state.previewData}
@@ -118,9 +123,15 @@ const App = () => {
         />
         <Route exact path="/login" element={<Login signIn={handleSignIn} />} />
         <Route exact path="/signup" element={<Signup />} />
+        <Route exact path="/success" element={<SuccessfulSignUP />} />
       </Routes>
     </Router>
   );
 };
 
 export default App;
+
+
+
+
+
