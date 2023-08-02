@@ -19,6 +19,7 @@ const Favorites = (props) => {
   const [favoriteEpisodes, setFavoriteEpisodes] = useState([]);
   const [sortOption, setSortOption] = useState("All");
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleAudioPlay = () => {
     setAudioPlaying(true);
@@ -40,7 +41,6 @@ const Favorites = (props) => {
         if (error) {
           console.error("Error fetching favorite episodes:", error.message);
         } else {
-          // Convert fetched data to the desired format, including showTitle and seasonTitle
           const favoriteEpisodesData = data.map(async (episode) => {
             const showId = episode.show_id;
             const seasonNumber = episode.season_number - 1;
@@ -48,10 +48,9 @@ const Favorites = (props) => {
             const id = episode.id;
             const time = episode.time_added;
 
-            const showTitle = getShowTitle(showId); // Fetch showTitle
-            const seasonTitle = getSeasonTitle(showId, seasonNumber); // Fetch seasonTitle
+            const showTitle = getShowTitle(showId);
+            const seasonTitle = getSeasonTitle(showId, seasonNumber);
 
-            // Fetch the episode data to include in the favoriteEpisodesData array
             const show = showsData.find((item) => item.id === showId);
             const episodeData =
               show?.seasons[seasonNumber]?.episodes[episodeNumber];
@@ -64,14 +63,14 @@ const Favorites = (props) => {
               time,
               showTitle,
               seasonTitle,
-              episodeData, // Include the episode data for sorting and rendering
+              episodeData,
             };
           });
 
-          // Wait for all async calls to complete and then set the favoriteEpisodes state
-          Promise.all(favoriteEpisodesData).then((data) =>
-            setFavoriteEpisodes(data)
-          );
+          Promise.all(favoriteEpisodesData).then((data) => {
+            setFavoriteEpisodes(data);
+            setIsLoading(false);
+          });
         }
       } catch (error) {
         console.error("Error fetching favorite episodes:", error.message);
@@ -82,14 +81,12 @@ const Favorites = (props) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch previewData
         if (!showsData) {
           const res = await fetch("https://podcast-api.netlify.app/shows");
           const previewData = await res.json();
           setAllPreviewData(previewData);
         }
 
-        // Fetch showData
         if (!showsData || !showsData.showData || !showsData.apiComplete) {
           const showIds = allPreviewData.map((item) => item.id);
           const showPromises = showIds.map((id) =>
@@ -123,12 +120,10 @@ const Favorites = (props) => {
 
   const handleRemoveFromFavorites = async (favoriteId) => {
     try {
-      // Remove the item from the local state
       setFavoriteEpisodes((prevFavorites) =>
         prevFavorites.filter((episode) => episode.id !== favoriteId)
       );
 
-      // Remove the item from Supabase
       await supabase.from("favorites").delete().eq("id", favoriteId);
       console.log("Favorite episode removed successfully!");
     } catch (error) {
@@ -142,8 +137,6 @@ const Favorites = (props) => {
 
   const sortEpisodes = (episodes, option) => {
     switch (option) {
-      case "All":
-        return episodes;
       case "A-Z":
         return episodes.sort((a, b) => {
           const episodeA = a.episodeData;
@@ -308,11 +301,9 @@ const Favorites = (props) => {
   }
 
   useEffect(() => {
-    // Add event listeners for audio play and pause events
     document.addEventListener("play", handleAudioPlay, true);
     document.addEventListener("pause", handleAudioPause, true);
 
-    // Event listener for the beforeunload event to prompt the user if audio is playing
     const handleBeforeUnload = (event) => {
       if (audioPlaying) {
         event.preventDefault();
@@ -323,7 +314,6 @@ const Favorites = (props) => {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // Clean up the event listeners when the component is unmounted
     return () => {
       document.removeEventListener("play", handleAudioPlay, true);
       document.removeEventListener("pause", handleAudioPause, true);
@@ -354,7 +344,7 @@ const Favorites = (props) => {
           </Stack>
         </Toolbar>
       </AppBar>
-      {renderedEpisodes}
+      {isLoading ? <p>Fetching favorites...</p> : renderedEpisodes}
     </div>
   );
 };
