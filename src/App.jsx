@@ -14,7 +14,7 @@ different routes and components based on the current URL. */
 const App = () => {
   const [loading, setLoading] = useState(true);
   const [state, setState] = useState({
-    signedIn: false,
+    signedIn: true,
     previewData: [],
     showData: [],
     apiComplete: false,
